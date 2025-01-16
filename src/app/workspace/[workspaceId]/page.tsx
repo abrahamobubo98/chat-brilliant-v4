@@ -22,7 +22,7 @@ const WorkspaceIdPage = () => {
     const isAdmin = useMemo(() => member?.role === "admin", [member?.role]);
 
     useEffect(() => {
-        if (workspaceLoading || channelsLoading || memberLoading || member || !workspace) return;
+        if (workspaceLoading || channelsLoading || memberLoading || !member || !workspace) return;
 
         if (channelId) {
             router.push(`/workspace/${workspaceId}/channel/${channelId}`);
