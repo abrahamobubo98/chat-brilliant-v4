@@ -9,8 +9,8 @@ type RequestType = {
     workspaceId: Id<"workspaces">, 
     image?: Id<"_storage">, 
     channelId?: Id<"channels">, 
-    parentMessageId?: Id<"messages">
-    //TODO Add conversationId
+    parentMessageId?: Id<"messages">,
+    conversationId?: Id<"conversations">,
 };
 
 type ResponseType = Id<"messages">  | null;
@@ -32,7 +32,7 @@ export const useCreateMessage = (options?: options) => {
     const isError = useMemo(() => status === "error", [status]);
     const isSettled = useMemo(() => status === "settled", [status]);
 
-    const mutation = useMutation(api.messages.mutate);
+    const mutation = useMutation(api.messages.create);
 
     const mutate = useCallback(async (values: RequestType, options?: options) => {
         try{
