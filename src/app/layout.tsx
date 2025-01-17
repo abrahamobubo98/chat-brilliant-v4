@@ -9,6 +9,8 @@ import "./globals.css";
 import { CreateWorkspacesModal } from "@/features/workspaces/components/create-workspaces-modal";
 import { Modals } from "@/components/modals";
 import { JotaiProvider } from "@/components/jotai-provider";
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
+import { type ReactNode } from 'react'
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +22,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <ConvexAuthNextjsServerProvider>
@@ -30,7 +32,7 @@ export default function RootLayout({
             <JotaiProvider>
               <Toaster />
               <Modals />
-              {children}
+              <NuqsAdapter>{children}</NuqsAdapter>
             </JotaiProvider>
           </ConvexClientProvider>
         </body>
