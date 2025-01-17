@@ -17,8 +17,8 @@ import {
 
 interface EmojiPopoverProps {
     children: React.ReactNode;
-    hint?: "Emoji";
-    onEmojiSelect: (emoji: string) => void;
+    hint?: string;
+    onEmojiSelect: (emoji: any) => void;
 };
 
 export const EmojiPopover = ({ 

@@ -6,6 +6,8 @@ import { Message } from "./message";
 import { ChannelHero } from "./channel-hero";
 import { useState } from "react";
 import { Id } from "../../convex/_generated/dataModel";
+import { useWorkspaceId } from "@/hooks/use-workspace-id";
+import { useCurrentMember } from "@/features/members/api/use-current-member";
 
 const  TIME_THRESHOLD = 5;
 
@@ -41,6 +43,11 @@ export const MessageList = ({
 }: MessageListProps) => {
 
     const [editingId, setEditingId] = useState<Id<"messages"> | null>(null);
+
+    const workspaceId = useWorkspaceId();
+
+    const {data: currentMember} = useCurrentMember({workspaceId});
+
     const groupedMessages = data?.reduce(
         (groups, message) => {
             const date = new Date(message._creationTime);
@@ -83,7 +90,7 @@ export const MessageList = ({
                                     authorImage={message.user.image}
                                     authorName={message.user.name}
                                     reactions={message.reactions}
-                                    isAuthor={false}
+                                    isAuthor={message.memberId === currentMember?._id}
                                     body={message.body}
                                     image={message.image}
                                     updatedAt={message.updatedAt}

@@ -6,6 +6,7 @@ import { format, isToday, isYesterday } from "date-fns";
 import { Hint } from "./hint";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Thumbnail } from "./thumbnail";
+import { Toolbar } from "@/components/toolbar";
 
 const Renderer = dynamic(() => import("@/components/renderer"), {
     ssr: false,
@@ -71,6 +72,7 @@ export const Message = ({
                     </Hint>
                     <div className="flex flex-col w-full ">
                         <Renderer value={body}/>
+                        <Thumbnail url={image}/>
                         {updatedAt ? (
                             <span className="text-xs text-muted-foreground">(edited)</span>
                         ): null}
@@ -84,7 +86,7 @@ export const Message = ({
 
     return (
         <div className="flex flex-col gap-2 p-2 px-5 hover:bg-slate-100/60 group relative">
-            <div className="flex items-center gap-2">
+            <div className="flex items-start gap-2">
                 <button>
                     <Avatar>
                         <AvatarImage src={authorImage}/>
@@ -114,6 +116,17 @@ export const Message = ({
                     </div>
                 </div>
             </div>
+            {!isEditing && (
+                <Toolbar
+                isAuthor={isAuthor}
+                isPending={false}
+                handleEdit={() => setEditingId(id)}
+                handleThread={() => {}}
+                handleDelete={() => {}}
+                handleReaction={() => {}}
+                hideThreadButton={hideThreadButton}
+                />
+            )}
         </div>
     )
 };
