@@ -1,10 +1,10 @@
 import { AlertTriangle } from "lucide-react";
-import { useCurrentMember } from "@/features/memebers/api/use-current-member";
+import { useCurrentMember } from "@/features/members/api/use-current-member";
 import { HashIcon, Loader2, MessageSquareText, SendHorizontal } from "lucide-react";
 
 import { useCreateChannelModal } from "@/features/channels/store/use-create-channel-modal";
 
-import { useGetMembers } from "@/features/memebers/api/use-get-members";
+import { useGetMembers } from "@/features/members/api/use-get-members";
 import { useGetChannels } from "@/features/channels/api/use-get-channels";
 import { useGetWorkspace } from "@/features/workspaces/api/use-get-workspace";
 

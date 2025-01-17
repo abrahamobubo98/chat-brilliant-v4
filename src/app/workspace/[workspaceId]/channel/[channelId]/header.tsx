@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useRouter } from "next/navigation";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
-import { useCurrentMember } from "@/features/memebers/api/use-current-member";
+import { useCurrentMember } from "@/features/members/api/use-current-member";
 
 interface HeaderProps {
     title: string;
