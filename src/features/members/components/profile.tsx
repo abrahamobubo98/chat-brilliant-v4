@@ -1,29 +1,29 @@
-import { ChevronDownIcon, MailIcon, XIcon } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import  Link  from "next/link";
+import { ChevronDownIcon, MailIcon, XIcon, AlertTriangle, Loader } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/hooks/use-confirm";
+import { Separator } from "@/components/ui/separator";
+import { useWorkspaceId } from "@/hooks/use-workspace-id";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { 
-    Avatar, 
-    AvatarImage, 
-    AvatarFallback 
-} from "@/components/ui/avatar";
-
-import { useGetMember } from "../api/use-get-member";
+    DropdownMenu, 
+    DropdownMenuContent, 
+    DropdownMenuTrigger, 
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuItem 
+} from "@/components/ui/dropdown-menu";
 
 import { Id } from "../../../../convex/_generated/dataModel";
-import { Separator } from "@/components/ui/separator";
 
-import { Loader } from "lucide-react";
-
-import { AlertTriangle } from "lucide-react";
-import  Link  from "next/link";
-import { useRemoveMember } from "../api/use-remove-member";
+import { useGetMember } from "../api/use-get-member";
 import { useUpdateMember } from "../api/use-update-member";
+import { useRemoveMember } from "../api/use-remove-member";
 import { useCurrentMember } from "../api/use-current-member";
-import { useWorkspaceId } from "@/hooks/use-workspace-id";
 import { toast } from "sonner";
-import { useState } from "react";
-import { useConfirm } from "@/hooks/use-confirm";
-import { useRouter } from "next/navigation";
 
 
 interface ProfileProps {
@@ -157,9 +157,25 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
                 {currentMember?.role === "admin" && 
                 currentMember?._id !== memberId? (
                     <div className="flex items-center gap-2 mt-4">
-                        <Button variant="outline" className="w-full capitalize" onClick={() => removeMember({id: memberId})}>
-                            {member.role} <ChevronDownIcon className="size-4 ml-2"/>
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full capitalize" onClick={() => removeMember({id: memberId})}>
+                                    {member.role} <ChevronDownIcon className="size-4 ml-2"/>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-full">
+                                <DropdownMenuRadioGroup
+                                value={member.role}
+                                onValueChange={(role) => onUpdate(role as "admin" | "member")}>
+                                    <DropdownMenuRadioItem value="admin">
+                                        Admin
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="member">
+                                        Member
+                                    </DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <Button variant="outline" className="w-full" onClick={() => onRemove()}>
                             Remove
                         </Button>

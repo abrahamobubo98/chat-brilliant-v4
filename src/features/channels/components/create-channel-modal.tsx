@@ -19,9 +19,9 @@ import { toast } from "sonner";
 export const CreateChannelModal = () => {
     const router = useRouter();
     const workspaceId = useWorkspaceId();
+    const { mutate, isPending } = useCreateChannel();
     const [open, setOpen] = useCreateChannelModal();
 
-    const { mutate, isPending } = useCreateChannel();
 
     const [name, setName] = useState("");
 
@@ -45,7 +45,7 @@ export const CreateChannelModal = () => {
                     router.push(`/workspace/${workspaceId}/channel/${id}`);
                     handleClose();
                 }, 
-                onError: (error) => {
+                onError: () => {
                     toast.error("Failed to create channel");
                 },
             },
@@ -70,7 +70,7 @@ export const CreateChannelModal = () => {
                     placeholder="e.g. strategies, tactics, etc."
                     />
                     <div className="flex justify-end">
-                        <Button disabled={false}>
+                        <Button disabled={isPending}>
                             Create
                         </Button>
                     </div>
