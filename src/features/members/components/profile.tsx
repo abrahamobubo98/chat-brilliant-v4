@@ -1,4 +1,4 @@
-import { MailIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, MailIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { 
@@ -16,6 +16,14 @@ import { Loader } from "lucide-react";
 
 import { AlertTriangle } from "lucide-react";
 import  Link  from "next/link";
+import { useRemoveMember } from "../api/use-remove-member";
+import { useUpdateMember } from "../api/use-update-member";
+import { useCurrentMember } from "../api/use-current-member";
+import { useWorkspaceId } from "@/hooks/use-workspace-id";
+import { toast } from "sonner";
+import { useState } from "react";
+import { useConfirm } from "@/hooks/use-confirm";
+import { useRouter } from "next/navigation";
 
 
 interface ProfileProps {
@@ -24,9 +32,74 @@ interface ProfileProps {
 }
 
 export const Profile = ({memberId, onClose}: ProfileProps) => {
-    const {data: member, isLoading: isLoadingMember} = useGetMember({id: memberId});
+    const router = useRouter();
+    const workspaceId = useWorkspaceId();
+
+    const [LeaveDialog, confirmLeave] = useConfirm(
+        "Are you sure you want to leave the workspace?", 
+        "You will not be able to join again unless you are invited by another member."
+    );
+
+    const [RemoveDialog, confirmRemove] = useConfirm(
+        "Are you sure you want to remove this member?", 
+        "This member will be removed from the workspace and will not be able to join again unless you are invited by another member."
+    );
+
+    const [UpdateDialog, confirmUpdate] = useConfirm(
+        "Are you sure you want to update this member's role?", 
+        "This member's role will be updated."
+    );
     
-    if (isLoadingMember) {
+    const {data: member, isLoading: isLoadingMember} = useGetMember({id: memberId});
+    const {data: currentMember, isLoading: isLoadingCurrentMember} = useCurrentMember({workspaceId});
+
+    const {mutate: updateMember, isPending: isUpdatingMember} = useUpdateMember();
+    const {mutate: removeMember, isPending: isRemovingMember} = useRemoveMember();
+
+    const onRemove = async() => {
+        const ok = await confirmRemove();
+        if (!ok) return;
+        removeMember({id: memberId}) , {
+            onSuccess: () => {
+                toast.success("Member removed");
+                onClose();
+            },
+            onError: () => {
+                toast.error("Failed to remove member");
+            }
+        };
+    }
+
+    const onLeave = async() => {
+        const ok = await confirmLeave();
+        if (!ok) return;
+        removeMember({id: memberId}) , {
+            onSuccess: () => {
+                router.replace("/");
+                toast.success("You left the workspace");
+                onClose();
+            },
+            onError: () => {
+                toast.error("Failed to leave the workspace");
+            }
+        };
+    }
+
+    const onUpdate = async(role: "admin" | "member") => {
+        const ok = await confirmUpdate();
+        if (!ok) return;
+        updateMember({id: memberId, role}) , {
+            onSuccess: () => {
+                toast.success("Role changed");
+                onClose();
+            },
+            onError: () => {
+                toast.error("Failed to change role");
+            }
+        };
+    }
+    
+    if (isLoadingMember || isLoadingCurrentMember) {
         return (
             <div className="h-full flex flex-col">
                 <div className="h-[49px]flex justify-between items-center px-4 border-b">
@@ -62,9 +135,13 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
     const avatarFallback = member.user.name?.[0] ?? "M";
 
     return (
-        <div className="h-full flex flex-col">
-            <div className="h-[49px]flex justify-between items-center px-4 border-b">
-                <p>Profile</p>
+        <>
+            <LeaveDialog />
+            <RemoveDialog />
+            <UpdateDialog />
+            <div className="h-full flex flex-col">
+                <div className="h-[49px]flex justify-between items-center px-4 border-b">
+                    <p>Profile</p>
                 <Button onClick={onClose} size="iconSm" variant="ghost">
                     <XIcon className="size-5 stroke-1.5"/>
                 </Button>
@@ -77,6 +154,24 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
             </div>
             <div className="flex flex-col p-4">
                 <p className="text-xl font-bold">{member.user.name}</p>
+                {currentMember?.role === "admin" && 
+                currentMember?._id !== memberId? (
+                    <div className="flex items-center gap-2 mt-4">
+                        <Button variant="outline" className="w-full capitalize" onClick={() => removeMember({id: memberId})}>
+                            {member.role} <ChevronDownIcon className="size-4 ml-2"/>
+                        </Button>
+                        <Button variant="outline" className="w-full" onClick={() => onRemove()}>
+                            Remove
+                        </Button>
+                    </div>
+                ): currentMember?._id === memberId && 
+                currentMember?.role !== "admin" ? (
+                    <div className="mt-4">
+                        <Button variant="outline" className="w-full" onClick={() => onLeave()}>
+                            Leave
+                        </Button>
+                    </div>
+                ) : null}
             </div>
             <Separator />
             <div className="flex flex-col p-4">
@@ -99,6 +194,6 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
                 </div>
             </div>
         </div>
-        
+        </>
     );
 };
