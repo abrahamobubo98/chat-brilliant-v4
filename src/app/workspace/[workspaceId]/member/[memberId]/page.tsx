@@ -13,14 +13,14 @@ const MemberIdPage = () => {
     const workspaceId = useWorkspaceId();
     const memberId = useMemberId();
 
-    const [conversationId, setConversation] = useState<Id<"conversations"> | null>(null);
+    const [conversationId, setConversationId] = useState<Id<"conversations"> | null>(null);
 
     const { data, mutate, isPending } = useCreateOrGetConversation();
 
     useEffect(() => {
         mutate({ workspaceId, memberId },{
             onSuccess: (data) => {
-                setConversation(data);
+                setConversationId(data);
             },
             onError: () => {
                 toast.error("Failed to create or get conversation");

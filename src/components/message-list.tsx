@@ -1,14 +1,16 @@
+import { useState } from "react";
+import { Loader } from "lucide-react";
 import { differenceInMinutes, format, isToday, isYesterday } from "date-fns";
 
-import {  GetMessagesReturnType } from "@/features/messages/api/use-get-messages";
+import { useCurrentMember } from "@/features/members/api/use-current-member";
+import { GetMessagesReturnType } from "@/features/messages/api/use-get-messages";
+
+import { useWorkspaceId } from "@/hooks/use-workspace-id";
 
 import { Message } from "./message";
 import { ChannelHero } from "./channel-hero";
-import { useState } from "react";
+
 import { Id } from "../../convex/_generated/dataModel";
-import { useWorkspaceId } from "@/hooks/use-workspace-id";
-import { useCurrentMember } from "@/features/members/api/use-current-member";
-import { Loader } from "lucide-react";
 import { ConversationHero } from "./conversation-hero";
 
 const  TIME_THRESHOLD = 5;
@@ -47,7 +49,6 @@ export const MessageList = ({
     const [editingId, setEditingId] = useState<Id<"messages"> | null>(null);
 
     const workspaceId = useWorkspaceId();
-
     const {data: currentMember} = useCurrentMember({workspaceId});
 
     const groupedMessages = data?.reduce(
@@ -103,6 +104,7 @@ export const MessageList = ({
                                     hideThreadButton={variant === "thread"}
                                     threadCount={message.threadCount}
                                     threadImage={message.threadImage}
+                                    threadName={message.threadName}
                                     threadTimestamp={message.threadTimestamp}
                                 />
                             )
@@ -144,7 +146,7 @@ export const MessageList = ({
                 creationTime={channelCreationTime}
                 />
             )}
-            {variant === "conversation" &&  (
+            {variant === "conversation" && (
                 <ConversationHero
                 name={memberName}
                 image={memberImage}

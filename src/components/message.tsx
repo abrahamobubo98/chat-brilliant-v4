@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { useToggleReaction } from "@/features/reactions/api/use-toggle-reaction";
 import { Reactions } from "./reactions";
 import { usePanel } from "@/hooks/use-panel";
-
+import { ThreadBar } from "./thread-bar";
 const Renderer = dynamic(() => import("@/components/renderer"), {
     ssr: false,
 });
@@ -46,6 +46,7 @@ interface MessageProps {
     hideThreadButton: boolean;
     threadCount?: number;
     threadImage?: string;
+    threadName?: string;
     threadTimestamp?: number;
 };
 
@@ -70,6 +71,7 @@ export const Message = ({
     hideThreadButton,
     threadCount,
     threadImage,
+    threadName,
     threadTimestamp,
 }: MessageProps) => {
 
@@ -163,6 +165,13 @@ export const Message = ({
                             <span className="text-xs text-muted-foreground">(edited)</span>
                         ): null}
                         <Reactions data={reactions} onChange={handleReaction}/>
+                        <ThreadBar
+                        count={threadCount}
+                        image={threadImage}
+                        name={threadName}
+                        timestamp={threadTimestamp}
+                        onClick={() => onOpenMessage(id)}
+                        />
                         </div>
                     )}
                 </div>
@@ -231,6 +240,13 @@ export const Message = ({
                             <span className="text-xs text-muted-foreground">(edited)</span>
                         ): null}
                         <Reactions data={reactions} onChange={handleReaction}/>
+                        <ThreadBar
+                        count={threadCount}
+                        image={threadImage}
+                        name={threadName}
+                        timestamp={threadTimestamp}
+                        onClick={() => onOpenMessage(id)}
+                        />
                     </div>
                 </div>
                 )}
