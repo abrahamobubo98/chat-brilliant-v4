@@ -51,7 +51,7 @@ interface MessageProps {
 };
 
 const formatFullTime = (date: Date) => {
-    return `${isToday(date) ? "Today": isYesterday(date) ? "Yesterday": format(date, "MMM d, yyyy")} at ${format(date, "hh:mm:ss a")}`;
+    return `${isToday(date) ? "Today" : isYesterday(date) ? "Yesterday" : format(date, "MMM d, yyyy")} at ${format(date, "hh:mm:ss a")}`;
 };
 
 export const Message = ({
@@ -141,9 +141,9 @@ export const Message = ({
                 isEditing && "bg-[#f2c74433] hover:bg-[#f2c74433]",
                 isRemovingMessage && "bg-rose-500/50 transform transition-all scale-y-0 origin-bottom duration-200"
                 )}>
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                     <Hint label={formatFullTime(new Date(createdAt))}>
-                        <button className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 w-[14px] leading-[22px] text-center hover:underline">
+                        <button className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 w-[40px] leading-[22px] text-center hover:underline">
                             {format(new Date(createdAt), "hh:mm")}
                         </button>
                     </Hint>

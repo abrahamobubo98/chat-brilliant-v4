@@ -76,10 +76,11 @@ export const ChatInput = ({ placeholder, conversationId }: ChatInputProps) => {
                 values.image = storageId;
             }
             
-            await createMessage(values, {throwError: true});
+            const messageResult = await createMessage(values, {throwError: true});
 
             setEditorKey(prev => prev + 1);
         } catch(error) {
+            console.error("[ChatInput] Error in handleSubmit:", error);
             toast.error("Failed to send message");
         } finally {
             setIsPending(false);

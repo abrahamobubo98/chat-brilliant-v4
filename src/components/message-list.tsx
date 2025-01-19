@@ -29,10 +29,10 @@ interface MessageListProps {
 
 const formatDateLabel = (dateStr: string) => {
     const date = new Date(dateStr);
-    if (isToday(date)) return "Today";
     if (isYesterday(date)) return "Yesterday";
+    if (isToday(date)) return "Today";
     return format(date, "EEEE, MMMM d");
-}
+};
 
 export const MessageList = ({
     memberName,

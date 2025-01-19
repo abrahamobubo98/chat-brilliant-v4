@@ -354,7 +354,7 @@ export const create = mutation({
             throw new Error("Unauthorized");
         };
 
-        let _conversationId: Id<"conversations"> | undefined;
+        let _conversationId = args.conversationId;
 
         //Only possible if the message is a reply to a message in a one-on-one conversation
         if (!args.conversationId && args.channelId && args.parentMessageId) {

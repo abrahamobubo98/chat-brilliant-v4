@@ -16,10 +16,8 @@ export const Conversation = ({ id }: ConversationProps) => {
 
     const memberId = useMemberId();
 
+    const { results, status, loadMore } = useGetMessages({ conversationId: id });
     const { data: member, isLoading: memberLoading } = useGetMember({ id: memberId });
-    const { results, status, loadMore } = useGetMessages({ 
-        conversationId: id 
-    });
 
     const { onOpenProfile } = usePanel();
 
@@ -47,6 +45,8 @@ export const Conversation = ({ id }: ConversationProps) => {
                 isLoadingMore={status === "LoadingMore"}
                 canLoadMore={status === "CanLoadMore"}
             />
+            
+            
             <ChatInput 
                 placeholder={`Message ${member?.user.name}`}
                 conversationId={id}

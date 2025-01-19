@@ -39,7 +39,6 @@ export const SignInCard = ({setState}: SignInCardProps) => {
     
 
     const onProviderSignIn = (value: "github" | "google") => {
-        console.log("Provider Sign-In Initiated:", value);
         setPending(true);
         signIn(value)
             .finally(() => {

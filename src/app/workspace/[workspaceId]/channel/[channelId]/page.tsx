@@ -17,8 +17,6 @@ const ChannelIdPage = () => {
     const { results, status, loadMore } = useGetMessages({ channelId });
     const { data: channel, isLoading: channelLoading } = useGetChannel({ id: channelId });
 
-    console.log({ results });
-
     if (channelLoading || status === "LoadingFirstPage") {
         return (
             <div className="h-full flex-1 flex items-center justify-center">
@@ -42,9 +40,9 @@ const ChannelIdPage = () => {
         <div className="h-full flex flex-col">
             <Header title={channel.name} />
             <MessageList 
+            data={results}
             channelName={channel.name}
             channelCreationTime={channel._creationTime}
-            data={results}
             loadMore={loadMore}
             isLoadingMore={status === "LoadingMore"}
             canLoadMore={status === "CanLoadMore"}

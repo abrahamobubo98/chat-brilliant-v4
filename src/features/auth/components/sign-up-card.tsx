@@ -35,7 +35,6 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
         signIn("password", { name, email, password, flow: "signUp" })
         .catch((error) => {
             setError("Something went wrong. Is your password 8 characters long?");
-            console.log(error.message);
         })
         .finally(() => {
             setPending(false);
@@ -43,7 +42,6 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
     }
 
     const onProviderSignUp = (value: "github" | "google") => {
-        console.log("Provider Sign-Up Initiated:", value);
         setPending(true);
         signIn(value)
             .finally(() => {

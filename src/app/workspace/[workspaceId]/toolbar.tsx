@@ -70,6 +70,7 @@ export const Toolbar = () => {
                                     <Link href={`/workspace/${workspaceId}/member/${member._id}`}>
                                         {member.user.name}
                                     </Link>
+                                    {member.user.name}
                                 </CommandItem>
                             ))}
                         </CommandGroup>
