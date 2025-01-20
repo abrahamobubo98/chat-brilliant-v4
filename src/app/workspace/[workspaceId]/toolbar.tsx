@@ -58,7 +58,7 @@ export const Toolbar = () => {
                             {channels?.map((channel) => (
                                 <CommandItem key={channel._id} onSelect={() => onChannelClick(channel._id)} asChild>
                                     <Link href={`/workspace/${workspaceId}/channel/${channel._id}`}>
-                                        {channel.name}
+                                    <span className="text-muted-foreground">{channel.name}</span>
                                     </Link>
                                 </CommandItem>
                             ))}
@@ -66,11 +66,10 @@ export const Toolbar = () => {
                         <CommandSeparator />
                         <CommandGroup heading="Members">
                             {members?.map((member) => (
-                                <CommandItem onSelect={() => onMemberClick(member._id)} asChild>
+                                <CommandItem key={member._id} onSelect={() => onMemberClick(member._id)} asChild>
                                     <Link href={`/workspace/${workspaceId}/member/${member._id}`}>
-                                        {member.user.name}
+                                    <span className="text-muted-foreground">{member.user.name}</span>
                                     </Link>
-                                    {member.user.name}
                                 </CommandItem>
                             ))}
                         </CommandGroup>
