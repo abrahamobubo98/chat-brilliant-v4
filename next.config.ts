@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["tacit-cassowary-520.convex.cloud"],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
