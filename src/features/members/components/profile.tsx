@@ -1,12 +1,13 @@
 import { useRouter } from "next/navigation";
 import  Link  from "next/link";
+import { useState } from "react";
 import { ChevronDownIcon, MailIcon, XIcon, AlertTriangle, Loader } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/hooks/use-confirm";
 import { Separator } from "@/components/ui/separator";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback, AvatarPresence } from "@/components/ui/avatar";
 import { 
     DropdownMenu, 
     DropdownMenuContent, 
@@ -21,6 +22,7 @@ import { useGetMember } from "../api/use-get-member";
 import { useUpdateMember } from "../api/use-update-member";
 import { useRemoveMember } from "../api/use-remove-member";
 import { useCurrentMember } from "../api/use-current-member";
+import { StatusModal } from "./status-modal";
 import { toast } from "sonner";
 
 
@@ -32,6 +34,7 @@ interface ProfileProps {
 export const Profile = ({memberId, onClose}: ProfileProps) => {
     const router = useRouter();
     const workspaceId = useWorkspaceId();
+    const [statusModalOpen, setStatusModalOpen] = useState(false);
 
     const [LeaveDialog, confirmLeave] = useConfirm(
         "Are you sure you want to leave the workspace?", 
@@ -132,12 +135,22 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
     }
 
     const avatarFallback = member.user.name?.[0] ?? "M";
+    const isCurrentUser = currentMember?._id === memberId;
 
     return (
         <>
             <LeaveDialog />
             <RemoveDialog />
             <UpdateDialog />
+            {isCurrentUser && (
+                <StatusModal
+                    isOpen={statusModalOpen}
+                    onClose={() => setStatusModalOpen(false)}
+                    workspaceId={workspaceId}
+                    currentStatus={member.status}
+                    currentEmoji={member.statusEmoji}
+                />
+            )}
             <div className="h-full flex flex-col">
                 <div className="h-[49px]flex justify-between items-center px-4 border-b">
                     <p>Profile</p>
@@ -146,13 +159,42 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
                 </Button>
             </div>
             <div className="flex flex-col items-center justify-center p-4">
-                <Avatar className="max-w-[256px] max-h-[256px] size-full">
-                    <AvatarImage src={member.user.image}/>
-                    <AvatarFallback className="aspect-square text-6xl">{avatarFallback}</AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                    <Avatar 
+                        className="w-[200px] h-[200px]"
+                        onClick={() => isCurrentUser ? setStatusModalOpen(true) : null}
+                        style={{ cursor: isCurrentUser ? 'pointer' : 'default' }}
+                    >
+                        <AvatarImage src={member.user.image}/>
+                        <AvatarFallback className="aspect-square text-5xl font-semibold">{avatarFallback}</AvatarFallback>
+                        <AvatarPresence 
+                            isOnline={!!member.isOnline} 
+                            className="h-6 w-6 border-2 right-2 bottom-2" 
+                        />
+                    </Avatar>
+                    {isCurrentUser && (
+                        <div className="mt-2 text-xs text-center text-muted-foreground">
+                            Click to update your status
+                        </div>
+                    )}
+                </div>
+                <div className="mt-4 w-full">
+                    <div className="flex flex-col items-center">
+                        <p className="text-xl font-bold">{member.user.name}</p>
+                        <div className="flex items-center mt-1">
+                            <span className={`h-2 w-2 rounded-full mr-2 ${member.isOnline ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                            <span className="text-sm text-muted-foreground">{member.isOnline ? 'Online' : 'Offline'}</span>
+                        </div>
+                        {member.status && (
+                            <div className="mt-2 text-sm flex items-center justify-center">
+                                {member.statusEmoji && <span className="mr-2">{member.statusEmoji}</span>}
+                                <span>{member.status}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
             <div className="flex flex-col p-4">
-                <p className="text-xl font-bold">{member.user.name}</p>
                 {currentMember?.role === "admin" && 
                 currentMember?._id !== memberId? (
                     <div className="flex items-center gap-2 mt-4">

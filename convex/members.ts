@@ -213,3 +213,57 @@ export const remove = mutation({
         return  args.id;
     }
 });
+
+// Update user online status
+export const updatePresence = mutation({
+    args: {
+        workspaceId: v.id("workspaces"),
+        isOnline: v.boolean()
+    },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx);
+        if (!userId) return null;
+
+        const member = await ctx.db
+            .query("members")
+            .withIndex("by_workspace_id_user_id", (q) => 
+                q.eq("workspaceId", args.workspaceId).eq("userId", userId)
+            )
+            .first();
+
+        if (!member) return null;
+
+        return await ctx.db.patch(member._id, { 
+            isOnline: args.isOnline,
+            lastSeen: Date.now()
+        });
+    }
+});
+
+// Update user status
+export const updateStatus = mutation({
+    args: {
+        workspaceId: v.id("workspaces"),
+        status: v.optional(v.string()),
+        statusEmoji: v.optional(v.string())
+    },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx);
+        if (!userId) return null;
+
+        const member = await ctx.db
+            .query("members")
+            .withIndex("by_workspace_id_user_id", (q) => 
+                q.eq("workspaceId", args.workspaceId).eq("userId", userId)
+            )
+            .first();
+
+        if (!member) return null;
+
+        return await ctx.db.patch(member._id, { 
+            status: args.status,
+            statusEmoji: args.statusEmoji,
+            lastSeen: Date.now()
+        });
+    }
+});

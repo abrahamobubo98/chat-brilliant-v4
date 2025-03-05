@@ -10,6 +10,8 @@ import {
     ResizableHandle 
 } from "@/components/ui/resizable";
 import { usePanel } from "@/hooks/use-panel";
+import { usePresence } from "@/hooks/use-presence";
+import { useParams } from "next/navigation";
 
 import { Sidebar } from "./sidebar";
 import { Toolbar } from "./toolbar";
@@ -22,6 +24,11 @@ interface WorkspaceIdLayoutProps {
 };
 
 const WorkspaceIdLayout = ({ children }: WorkspaceIdLayoutProps) => {
+    const params = useParams();
+    const workspaceId = params.workspaceId as Id<"workspaces">;
+    
+    // Track user presence
+    usePresence(workspaceId);
 
     const {parentMessageId, profileMemberId, onClose} = usePanel();
 

@@ -47,4 +47,22 @@ const AvatarFallback = React.forwardRef<
 ))
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
 
-export { Avatar, AvatarImage, AvatarFallback }
+const AvatarPresence = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    isOnline?: boolean;
+  }
+>(({ className, isOnline, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
+      isOnline ? "bg-green-500" : "bg-gray-300",
+      className
+    )}
+    {...props}
+  />
+))
+AvatarPresence.displayName = "AvatarPresence"
+
+export { Avatar, AvatarImage, AvatarFallback, AvatarPresence }

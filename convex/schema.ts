@@ -13,6 +13,10 @@ const schema = defineSchema({
         userId: v.id("users"),
         workspaceId: v.id("workspaces"),
         role: v.union(v.literal("admin"), v.literal("member")),
+        isOnline: v.optional(v.boolean()),
+        lastSeen: v.optional(v.number()),
+        status: v.optional(v.string()),
+        statusEmoji: v.optional(v.string()),
     })
 
     .index("by_user_id", ["userId"])
