@@ -29,7 +29,7 @@ export const SignInCard = ({setState}: SignInCardProps) => {
         setPending(true);
 
         signIn("password", { email, password, flow: "signIn" })
-        .catch((error) => {
+        .catch(() => {
             setError("Invalid Email or Password");
         })
         .finally(() => {
@@ -106,7 +106,7 @@ export const SignInCard = ({setState}: SignInCardProps) => {
                     </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                    Don't have an account? <span onClick={() => setState("signUp")} className="text-sky-700 hover:underline cursor-pointer">Sign Up</span>
+                    Don&apos;t have an account? <span onClick={() => setState("signUp")} className="text-sky-700 hover:underline cursor-pointer">Sign Up</span>
                 </p>
             </CardContent>
         </Card>

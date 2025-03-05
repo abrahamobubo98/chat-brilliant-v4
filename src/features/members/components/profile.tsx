@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import  Link  from "next/link";
 import { ChevronDownIcon, MailIcon, XIcon, AlertTriangle, Loader } from "lucide-react";
@@ -14,7 +13,6 @@ import {
     DropdownMenuTrigger, 
     DropdownMenuRadioGroup,
     DropdownMenuRadioItem,
-    DropdownMenuItem 
 } from "@/components/ui/dropdown-menu";
 
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -53,50 +51,51 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
     const {data: member, isLoading: isLoadingMember} = useGetMember({id: memberId});
     const {data: currentMember, isLoading: isLoadingCurrentMember} = useCurrentMember({workspaceId});
 
-    const {mutate: updateMember, isPending: isUpdatingMember} = useUpdateMember();
-    const {mutate: removeMember, isPending: isRemovingMember} = useRemoveMember();
+    const {mutate: updateMember, isPending: isUpdatingMember} = useUpdateMember({
+        onSuccess: () => {
+            toast.success("Role changed");
+            onClose();
+        },
+        onError: () => {
+            toast.error("Failed to change role");
+        }
+    });
+    
+    const {mutate: removeMember, isPending: isRemovingMember} = useRemoveMember({
+        onSuccess: () => {
+            if (memberId === currentMember?._id) {
+                router.replace("/");
+                toast.success("You left the workspace");
+            } else {
+                toast.success("Member removed");
+            }
+            onClose();
+        },
+        onError: () => {
+            if (memberId === currentMember?._id) {
+                toast.error("Failed to leave the workspace");
+            } else {
+                toast.error("Failed to remove member");
+            }
+        }
+    });
 
     const onRemove = async() => {
         const ok = await confirmRemove();
         if (!ok) return;
-        removeMember({id: memberId}) , {
-            onSuccess: () => {
-                toast.success("Member removed");
-                onClose();
-            },
-            onError: () => {
-                toast.error("Failed to remove member");
-            }
-        };
+        removeMember({id: memberId});
     }
 
     const onLeave = async() => {
         const ok = await confirmLeave();
         if (!ok) return;
-        removeMember({id: memberId}) , {
-            onSuccess: () => {
-                router.replace("/");
-                toast.success("You left the workspace");
-                onClose();
-            },
-            onError: () => {
-                toast.error("Failed to leave the workspace");
-            }
-        };
+        removeMember({id: memberId});
     }
 
     const onUpdate = async(role: "admin" | "member") => {
         const ok = await confirmUpdate();
         if (!ok) return;
-        updateMember({id: memberId, role}) , {
-            onSuccess: () => {
-                toast.success("Role changed");
-                onClose();
-            },
-            onError: () => {
-                toast.error("Failed to change role");
-            }
-        };
+        updateMember({id: memberId, role});
     }
     
     if (isLoadingMember || isLoadingCurrentMember) {
@@ -159,8 +158,9 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
                     <div className="flex items-center gap-2 mt-4">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="w-full capitalize" onClick={() => removeMember({id: memberId})}>
+                                <Button variant="outline" className="w-full capitalize">
                                     {member.role} <ChevronDownIcon className="size-4 ml-2"/>
+                                    {isUpdatingMember && <Loader className="ml-2 size-4 animate-spin" />}
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-full">
@@ -176,15 +176,27 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
                                 </DropdownMenuRadioGroup>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button variant="outline" className="w-full" onClick={() => onRemove()}>
+                        <Button 
+                            variant="outline" 
+                            className="w-full" 
+                            onClick={() => onRemove()}
+                            disabled={isRemovingMember}
+                        >
                             Remove
+                            {isRemovingMember && <Loader className="ml-2 size-4 animate-spin" />}
                         </Button>
                     </div>
                 ): currentMember?._id === memberId && 
                 currentMember?.role !== "admin" ? (
                     <div className="mt-4">
-                        <Button variant="outline" className="w-full" onClick={() => onLeave()}>
+                        <Button 
+                            variant="outline" 
+                            className="w-full" 
+                            onClick={() => onLeave()}
+                            disabled={isRemovingMember}
+                        >
                             Leave
+                            {isRemovingMember && <Loader className="ml-2 size-4 animate-spin" />}
                         </Button>
                     </div>
                 ) : null}

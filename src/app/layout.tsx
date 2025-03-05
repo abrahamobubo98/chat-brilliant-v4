@@ -6,7 +6,7 @@ import { ConvexClientProvider } from "@/components/ui/convex-client-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
-import { CreateWorkspacesModal } from "@/features/workspaces/components/create-workspaces-modal";
+// import { CreateWorkspacesModal } from "@/features/workspaces/components/create-workspaces-modal";
 import { Modals } from "@/components/modals";
 import { JotaiProvider } from "@/components/jotai-provider";
 import { NuqsAdapter } from 'nuqs/adapters/next/app'

@@ -15,10 +15,16 @@ import {
     TooltipTrigger 
 } from "@/components/ui/tooltip";
 
+interface EmojiData {
+    native: string;
+    id: string;
+    [key: string]: unknown;
+}
+
 interface EmojiPopoverProps {
     children: React.ReactNode;
     hint?: string;
-    onEmojiSelect: (emoji: any) => void;
+    onEmojiSelect: (emoji: EmojiData) => void;
 };
 
 export const EmojiPopover = ({ 
@@ -29,14 +35,14 @@ export const EmojiPopover = ({
     const [popoverOpen, setPopoverOpen] = useState(false);
     const [tooltipOpen, setTooltipOpen] = useState(false);
 
-    const onSelect = (emoji: any) => {
-        onEmojiSelect(emoji.native);
-        setPopoverOpen(false);
+    // const onSelect = (emoji: any) => {
+    //     onEmojiSelect(emoji.native);
+    //     setPopoverOpen(false);
 
-        setTimeout(() => {
-            setTooltipOpen(false);
-        }, 500);
-    };
+    //     setTimeout(() => {
+    //         setTooltipOpen(false);
+    //     }, 500);
+    // };
 
     return (
         <TooltipProvider>

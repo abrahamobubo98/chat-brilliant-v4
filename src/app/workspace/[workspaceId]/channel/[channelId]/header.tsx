@@ -38,11 +38,28 @@ export const Header = ({ title }: HeaderProps) => {
     const [editOpen, setEditOpen] = useState(false);
 
     const { data: member } = useCurrentMember({ workspaceId });
-    const { mutate: updateChannel, isPending: isUpdatingChannel } = useUpdateChannel();
-    const { mutate: removeChannel, isPending: isRemovingChannel } = useRemoveChannel();
+    const { mutate: updateChannel, isPending: isUpdatingChannel } = useUpdateChannel({
+        onSuccess: () => {
+            toast.success("Channel name updated");
+            setEditOpen(false);
+        },
+        onError: () => {
+            toast.error("Failed to update channel name");
+        }
+    });
+    const { mutate: removeChannel, isPending: isRemovingChannel } = useRemoveChannel({
+        onSuccess: () => {
+            toast.success("Channel deleted");
+            router.push(`/workspace/${workspaceId}`);
+        },
+        onError: () => {
+            toast.error("Failed to delete channel");
+        }
+    });
 
-    const handleEditOpen = (value: boolean) => {
+    const handleEditOpen = (value: boolean) => {    
         if (member?.role === "admin") return
+        setEditOpen(value);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,28 +71,12 @@ export const Header = ({ title }: HeaderProps) => {
         const ok = await confirm();
         if (!ok) return;
 
-        removeChannel({ id: channelId }, {
-            onSuccess: () => {
-                toast.success("Channel deleted");
-                router.push(`/workspace/${workspaceId}`);
-            },
-            onError: () => {
-                toast.error("Failed to delete channel");
-            }
-        });
+        removeChannel({ id: channelId });
     };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        updateChannel({ id: channelId, name: value }, {
-            onSuccess: () => {
-                toast.success("Channel name updated");
-                setEditOpen(false);
-            },
-            onError: () => {
-                toast.error("Failed to update channel name");
-            }
-        });
+        updateChannel({ id: channelId, name: value });
     };
 
     return (

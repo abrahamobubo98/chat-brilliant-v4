@@ -41,6 +41,7 @@ export const InviteModal = ({
                 toast.success("New join code generated");
             },
             onError: (error) => {
+                console.error(error);
                 toast.error("Failed to generate new invite code");
             },
         });

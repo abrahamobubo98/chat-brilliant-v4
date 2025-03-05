@@ -116,7 +116,7 @@ const Editor = ({
         quill.setContents(defaultValueRef.current);
         setText(quill.getText());
 
-        quill.on(Quill.events.TEXT_CHANGE, (delta, oldDelta, source) => {
+        quill.on(Quill.events.TEXT_CHANGE, () => {
             setText(quill.getText());
         });
         
@@ -143,7 +143,13 @@ const Editor = ({
         }
     };
 
-    const onEmojiSelect = (emoji: any) => {
+    interface EmojiData {
+        native: string;
+        id: string;
+        [key: string]: unknown;
+    }
+
+    const onEmojiSelect = (emoji: EmojiData) => {
         const quill = quillRef.current;
 
         quill?.insertText(quill?.getSelection()?.index || 0, emoji.native);

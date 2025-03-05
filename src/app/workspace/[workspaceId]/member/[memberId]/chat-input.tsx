@@ -78,6 +78,8 @@ export const ChatInput = ({ placeholder, conversationId }: ChatInputProps) => {
             
             const messageResult = await createMessage(values, {throwError: true});
 
+            console.log("[ChatInput] Message result:", messageResult);
+
             setEditorKey(prev => prev + 1);
         } catch(error) {
             console.error("[ChatInput] Error in handleSubmit:", error);

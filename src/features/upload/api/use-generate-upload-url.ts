@@ -5,14 +5,14 @@ import { api } from "../../../../convex/_generated/api";
 
 type ResponseType = string | null;
 
-type options = {
+type Options = {
     onSuccess?: (data: ResponseType) => void;
     onError?: (error: Error) => void;
     onSettled?: () => void;
     throwError?: boolean;
 };
 
-export const useGenerateUploadUrl = (options?: options) => {
+export const useGenerateUploadUrl = (initialOptions?: Options) => {
     const [ data, setData ] = useState<ResponseType>(null);
     const [ error, setError ] = useState<Error | null>(null);
     const [ status, setStatus ] = useState<"success" | "error" | "settled" | "pending" | null>(null);
@@ -24,27 +24,31 @@ export const useGenerateUploadUrl = (options?: options) => {
 
     const mutation = useMutation(api.upload.generateUploadUrl);
 
-    const mutate = useCallback(async (values: {}, options?: options) => {
+    const mutate = useCallback(async (values?: Record<string, never>, options?: Options) => {
         try{
             setData(null);
             setError(null);
             setStatus("pending");
 
             const response = await mutation();
-            options?.onSuccess?.(response);
+            setData(response);
+            setStatus("success");
+            
+            // Use either the call-time options or the initialOptions
+            (options || initialOptions)?.onSuccess?.(response);
             return response;
         } catch(error) {
             setStatus("error");
-            options?.onError?.(error as Error);
-            if(options?.throwError) {
+            setError(error as Error);
+            (options || initialOptions)?.onError?.(error as Error);
+            if((options || initialOptions)?.throwError) {
                 throw error;
             }
         } finally {
-            setStatus(null);
             setStatus("settled");
-            options?.onSettled?.();
+            (options || initialOptions)?.onSettled?.();
         }
-    }, [mutation]);
+    }, [mutation, initialOptions]);
 
     return { 
         mutate,

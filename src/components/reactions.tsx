@@ -4,8 +4,6 @@ import { useCurrentMember } from "@/features/members/api/use-current-member";
 import { cn } from "@/lib/utils";
 import { Hint } from "./hint";
 import { EmojiPopover } from "./emoji-popover";
-import { Button } from "./ui/button";
-import { SmileIcon } from "lucide-react";
 import { MdOutlineAddReaction } from "react-icons/md";
 
 interface ReactionsProps {

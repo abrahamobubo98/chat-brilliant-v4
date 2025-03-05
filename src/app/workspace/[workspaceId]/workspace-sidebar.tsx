@@ -21,16 +21,16 @@ export const WorkspaceSidebar = () => {
     const channelId = useChannelId();
     const workspaceId = useWorkspaceId();
 
-    const [_open, setOpen] = useCreateChannelModal();
+    const [, setOpen] = useCreateChannelModal();
     
     const { data: member, isLoading: memberLoading } = useCurrentMember( { workspaceId } );
     const { data: workspace, isLoading: workspaceLoading } = useGetWorkspace( { id: workspaceId } );
     const { data: channels, isLoading: channelsLoading } = useGetChannels({ workspaceId });
     const { data: members, isLoading: membersLoading } = useGetMembers({ workspaceId });
 
-    if (workspaceLoading || memberLoading) {
+    if (workspaceLoading || memberLoading || channelsLoading || membersLoading) {
         return <div className="flex flex-col bg-[#008060] h-full items-center justify-center">
-            <Loader2 className="size={5} animate-spin text-white" />
+            <Loader2 className="size-5 animate-spin text-white" />
         </div>;
     }
 
