@@ -1,6 +1,5 @@
 "use client";
 
-import { Loader } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { usePresence } from "@/hooks/use-presence";

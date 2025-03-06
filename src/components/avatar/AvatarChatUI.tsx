@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SendIcon, Loader2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import Image from "next/image";
 
 interface AvatarChatUIProps {
   onSendMessage: (message: string) => Promise<void>;
@@ -44,7 +45,13 @@ export function AvatarChatUI({
       <div className="flex items-center space-x-2 pb-2">
         <Avatar className="h-8 w-8">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+            <Image 
+              src={avatarUrl} 
+              alt="Avatar" 
+              width={32} 
+              height={32} 
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary text-sm">AI</div>
           )}

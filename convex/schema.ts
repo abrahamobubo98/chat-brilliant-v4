@@ -45,6 +45,7 @@ const schema = defineSchema({
         parentMessageId: v.optional(v.id("messages")),
         conversationId: v.optional(v.id("conversations")),
         updatedAt: v.optional(v.number()),
+        isAIGenerated: v.optional(v.boolean()),
     })
     .index("by_workspace_id", ["workspaceId"])
     .index("by_member_id", ["memberId"])
@@ -75,6 +76,19 @@ const schema = defineSchema({
         personalityProfile: v.optional(v.string()),
     })
     .index("by_user_id", ["userId"]),
+    
+    // Search results storage
+    searchResults: defineTable({
+        query: v.string(),
+        workspaceId: v.string(),
+        timestamp: v.number(),
+        status: v.string(),
+        results: v.optional(v.any()),
+        error: v.optional(v.string()),
+        updatedAt: v.optional(v.number()),
+    })
+    .index("by_workspace_id", ["workspaceId"])
+    .index("by_timestamp", ["timestamp"]),
 });
 
 export default schema;

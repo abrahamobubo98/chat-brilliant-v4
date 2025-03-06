@@ -226,10 +226,11 @@ export const getById = query({
 
         return {
             ...message,
-            image: message.image ? await ctx.storage.getUrl(message.image) : undefined,
+            reactions: reactionsWithoutMemberIdProperty,
             user,
             member,
-            reactions: reactionsWithoutMemberIdProperty,
+            image: message.image ? await ctx.storage.getUrl(message.image) : undefined,
+            isAIGenerated: message.isAIGenerated || false
         };
     }
 })
@@ -336,6 +337,7 @@ export const get = query({
                             threadImage: thread.image,
                             threadName: thread.name,
                             threadTimestamp: thread.timestamp,
+                            isAIGenerated: message.isAIGenerated || false
                         };
                     })
                 )
@@ -414,8 +416,8 @@ export const create = mutation({
                         const isOffline = !otherMember.isOnline;
                         
                         // Log for debugging
-                        console.log(`Message received: ${args.body}`);
-                        console.log(`Recipient member ${otherMemberId} is offline: ${isOffline}`);
+                        console.log(`[MESSAGES:SEND] Message received: ${args.body.substring(0, 50)}...`);
+                        console.log(`[MESSAGES:SEND] Recipient member ${otherMemberId} is offline: ${isOffline}`);
                         
                         if (isOffline) {
                             // Check if they have an active avatar
@@ -429,8 +431,8 @@ export const create = mutation({
                             if (isAvatarActive) {
                                 console.log(`[MESSAGES:SEND] Recipient has active avatar. Triggering automated response.`);
                                 try {
-                                    // Trigger the avatar to respond
-                                    const response = await ctx.runMutation(api.avatar.handleAutomatedResponse, {
+                                    // Trigger the avatar to respond with a delay to make it feel natural
+                                    ctx.scheduler.runAfter(3000, api.avatar.processDelayedResponse, {
                                         userId: otherMember.userId,
                                         messageText: args.body,
                                         conversationId: _conversationId,
@@ -438,9 +440,9 @@ export const create = mutation({
                                         receiverMemberId: otherMemberId
                                     });
                                     
-                                    console.log(`[MESSAGES:SEND] Avatar response triggered with result:`, response);
+                                    console.log(`[MESSAGES:SEND] Avatar response scheduled`);
                                 } catch (avatarError) {
-                                    console.error(`[MESSAGES:SEND] Error triggering avatar response: ${avatarError}`);
+                                    console.error(`[MESSAGES:SEND] Error scheduling avatar response: ${avatarError}`);
                                     // Don't fail the message send if avatar response fails
                                 }
                             }
@@ -559,14 +561,40 @@ export const sendAIMessage = mutation({
           conversationId: ${conversationId}
         `);
         
+        // Validate the body format
         try {
-            // Create the message
-            console.log(`[MESSAGES:SEND_AI] Inserting message into database`);
+            // Ensure the body is valid JSON with a proper Quill Delta structure
+            const parsedBody = JSON.parse(body);
+            if (!parsedBody.ops || !Array.isArray(parsedBody.ops)) {
+                console.error(`[MESSAGES:SEND_AI] Invalid message format: Missing or invalid 'ops' array`);
+                // Try to fix it by wrapping it in a proper structure
+                const fixedBody = JSON.stringify({
+                    ops: [{ insert: typeof parsedBody === 'string' ? parsedBody : JSON.stringify(parsedBody) }]
+                });
+                console.log(`[MESSAGES:SEND_AI] Attempted to fix message format. New body: ${fixedBody.substring(0, 50)}...`);
+                args.body = fixedBody;
+            } else {
+                console.log(`[MESSAGES:SEND_AI] Message has valid Quill Delta format with ${parsedBody.ops.length} operations`);
+            }
+        } catch (parseError) {
+            console.error(`[MESSAGES:SEND_AI] Error parsing message body as JSON: ${parseError}`);
+            // Not valid JSON, wrap it as plain text
+            const fixedBody = JSON.stringify({
+                ops: [{ insert: body }]
+            });
+            console.log(`[MESSAGES:SEND_AI] Fixed non-JSON message. New body: ${fixedBody.substring(0, 50)}...`);
+            args.body = fixedBody;
+        }
+        
+        try {
+            // Create the message with a special flag indicating it's AI-generated
+            console.log(`[MESSAGES:SEND_AI] Inserting message into database with isAIGenerated=true`);
             const messageId = await ctx.db.insert("messages", {
-                body,
+                body: args.body,
                 memberId,
                 workspaceId,
                 conversationId,
+                isAIGenerated: true, // Add this flag to identify AI-generated messages
             });
             console.log(`[MESSAGES:SEND_AI] Successfully created message. ID: ${messageId}`);
             
@@ -584,7 +612,7 @@ export const sendAIMessage = mutation({
                 console.log(`[MESSAGES:SEND_AI] Storing message in vector database`);
                 await ctx.scheduler.runAfter(0, api.vector.storeMessageVector, {
                     messageId,
-                    text: body,
+                    text: args.body,
                     workspaceId,
                     userId: member.userId
                 });

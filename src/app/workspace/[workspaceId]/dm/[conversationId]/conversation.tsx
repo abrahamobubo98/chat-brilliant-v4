@@ -5,7 +5,6 @@ import { Loader, ArrowLeft } from "lucide-react";
 import { MessageList } from "@/components/message-list";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { FaChevronDown } from "react-icons/fa";
 import { useCreateMessage } from "@/features/messages/api/use-create-message";
 import { useGenerateUploadUrl } from "@/features/upload/api/use-generate-upload-url";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";

@@ -85,6 +85,9 @@ export const MessageList = ({
                                     new Date(previousMessage._creationTime)
                                 ) < TIME_THRESHOLD;
 
+                            // Use the isAIGenerated flag to determine if it's from an AI avatar
+                            const isFromAIAvatar = message.isAIGenerated === true;
+
                             return (
                                 <Message
                                     key={message._id}
@@ -106,6 +109,7 @@ export const MessageList = ({
                                     threadImage={message.threadImage}
                                     threadName={message.threadName}
                                     threadTimestamp={message.threadTimestamp}
+                                    isFromAIAvatar={isFromAIAvatar}
                                 />
                             )
                         })}

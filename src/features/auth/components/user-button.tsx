@@ -23,26 +23,44 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCurrentUser } from "@/features/auth/api/use-current-user";
-import { useAuthActions } from "@convex-dev/auth/react";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
 import { StatusModal } from "@/features/members/components/status-modal";
 import { useCurrentMember } from "@/features/members/api/use-current-member";
 import { useLogout } from "@/hooks/use-logout";
+import { Id } from "../../../../convex/_generated/dataModel";
+
+// Define a proper type for Member
+interface Member {
+    _id: Id<"members">;
+    userId: Id<"users">;
+    workspaceId: Id<"workspaces">;
+    role: "admin" | "member";
+    isOnline?: boolean;
+    lastSeen?: number;
+    status?: string;
+    statusEmoji?: string;
+}
+
+// Component to fetch and handle current member data
+const MemberDataProvider = ({
+    workspaceId,
+    children
+}: {
+    workspaceId: Id<"workspaces">;
+    children: (member: Member | null | undefined) => React.ReactNode;
+}) => {
+    const { data } = useCurrentMember({ workspaceId });
+    return <>{children(data)}</>;
+};
 
 export const UserButton = () => {
-    const { signOut } = useAuthActions();
     const { logout, isLoggingOut } = useLogout();
     const { data, isLoading } = useCurrentUser();
     const workspaceId = useWorkspaceId();
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     
-    // Only fetch current member if we have a valid workspaceId
-    const { data: currentMember } = workspaceId 
-        ? useCurrentMember({ workspaceId }) 
-        : { data: undefined };
-    
     if (isLoading || isLoggingOut) {
-        return <Loader className="size-4 animate-spin text-muted-foreground"/>
+        return <Loader className="size-4 animate-spin text-muted-foreground"/>;
     }
 
     if (!data) {
@@ -56,14 +74,15 @@ export const UserButton = () => {
         setStatusModalOpen(true);
     };
 
-    return(
+    // Render content with or without workspace data
+    const renderContent = (member?: Member | null) => (
         <>
             <StatusModal
                 isOpen={statusModalOpen}
                 onClose={() => setStatusModalOpen(false)}
                 workspaceId={workspaceId}
-                currentStatus={currentMember?.status}
-                currentEmoji={currentMember?.statusEmoji}
+                currentStatus={member?.status}
+                currentEmoji={member?.statusEmoji}
             />
             <TooltipProvider>
                 <Tooltip>
@@ -77,18 +96,18 @@ export const UserButton = () => {
                                             {avatarFallback}
                                         </AvatarFallback>
                                         <AvatarPresence 
-                                            isOnline={!!currentMember?.isOnline} 
+                                            isOnline={!!member?.isOnline} 
                                             className="h-3.5 w-3.5 border-2 border-[#008060]"
                                         />
                                     </Avatar>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="center" side="right" className="w-60">
-                                    {currentMember?.status ? (
+                                    {member?.status ? (
                                         <div className="px-2 py-1.5 text-sm flex items-center">
                                             <span className="mr-2 opacity-75">Current status:</span>
                                             <span className="flex items-center">
-                                                {currentMember.statusEmoji && <span className="mr-1">{currentMember.statusEmoji}</span>}
-                                                {currentMember.status}
+                                                {member.statusEmoji && <span className="mr-1">{member.statusEmoji}</span>}
+                                                {member.status}
                                             </span>
                                         </div>
                                     ) : (
@@ -116,4 +135,11 @@ export const UserButton = () => {
             </TooltipProvider>
         </>
     );
-}
+
+    // Either render with member data if we have a workspace, or without it
+    return workspaceId ? (
+        <MemberDataProvider workspaceId={workspaceId}>
+            {(member) => renderContent(member)}
+        </MemberDataProvider>
+    ) : renderContent();
+};

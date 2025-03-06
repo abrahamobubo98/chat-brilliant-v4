@@ -1,11 +1,12 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, MessageSquare, User } from 'lucide-react';
+import { Bot, User } from 'lucide-react';
 import { useActivateAvatar, useDeactivateAvatar, useHandleAutomatedResponse } from '@/features/avatar/api/use-avatar';
 import { toast } from 'sonner';
-import { Id } from '../../../convex/_generated/dataModel';
 import { asId, TableNames } from '@/lib/utils/id-helpers';
 
 interface AvatarDemonstrationProps {
@@ -80,13 +81,13 @@ export const AvatarDemonstration = ({
           AI Avatar Demonstration
         </CardTitle>
         <CardDescription>
-          Test your AI avatar's response capabilities
+          Test your AI avatar&apos;s response capabilities
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <p className="text-sm font-medium">Send a test message to <span className="font-bold">{username}'s</span> AI avatar:</p>
+            <p className="text-sm font-medium">Send a test message to <span className="font-bold">{username}&apos;s</span> AI avatar:</p>
             <Input
               placeholder="Type your message here..."
               value={message}

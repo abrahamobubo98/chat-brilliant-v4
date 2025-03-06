@@ -17,6 +17,7 @@ import { useToggleReaction } from "@/features/reactions/api/use-toggle-reaction"
 import { Reactions } from "./reactions";
 import { usePanel } from "@/hooks/use-panel";
 import { ThreadBar } from "./thread-bar";
+import { Bot } from "lucide-react";
 const Renderer = dynamic(() => import("@/components/renderer"), {
     ssr: false,
 });
@@ -48,6 +49,7 @@ interface MessageProps {
     threadImage?: string;
     threadName?: string;
     threadTimestamp?: number;
+    isFromAIAvatar?: boolean;
 };
 
 const formatFullTime = (date: Date) => {
@@ -73,6 +75,7 @@ export const Message = ({
     threadImage,
     threadName,
     threadTimestamp,
+    isFromAIAvatar,
 }: MessageProps) => {
 
     const { parentMessageId, onOpenMessage, onOpenProfile, onClose } = usePanel();
@@ -202,13 +205,18 @@ export const Message = ({
             isRemovingMessage && "bg-rose-500/50 transform transition-all scale-y-0 origin-bottom duration-200"
             )}>
             <div className="flex items-start gap-2">
-                <button onClick={() => onOpenProfile(memberId)}>
+                <button onClick={() => onOpenProfile(memberId)} className="relative">
                     <Avatar>
                         <AvatarImage src={authorImage}/>
                         <AvatarFallback >
                             {avatarFallback}
                         </AvatarFallback>
                     </Avatar>
+                    {isFromAIAvatar && (
+                        <span className="absolute -top-1 -right-1 bg-blue-500 text-white rounded-full p-0.5">
+                            <Bot className="h-3 w-3" />
+                        </span>
+                    )}
                 </button>
                 {isEditing ? (
                     <div className="w-full h-full">
@@ -222,13 +230,17 @@ export const Message = ({
                     </div>
                 ): (
                 <div className="flex flex-col w-full overflow-hidden">
-                    <div className="text-sm">
-                        <button onClick={() => onOpenProfile(memberId)} className="font-bold text-primary hover:underline">
+                    <div className="text-sm flex items-center">
+                        <button onClick={() => onOpenProfile(memberId)} className="font-bold text-primary hover:underline flex items-center">
                             {authorName}
+                            {isFromAIAvatar && (
+                                <span className="ml-1 text-blue-500 flex items-center" title="AI Avatar">
+                                    <Bot className="h-3.5 w-3.5 inline-block" />
+                                </span>
+                            )}
                         </button>
-                        <span>&nbsp;&nbsp;</span>
                         <Hint label={formatFullTime(new Date(createdAt))}>
-                            <button className="text-sm text-muted-foreground hover:underline">
+                            <button className="text-sm text-muted-foreground hover:underline ml-2">
                                 {format(new Date(createdAt), "h:mm a")}
                             </button>
                         </Hint>

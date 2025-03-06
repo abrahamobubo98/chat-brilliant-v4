@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useMutation } from "../../mocks/convex-hooks";
 import { api } from "@/convex/_generated/api";
@@ -24,23 +24,21 @@ export default function Avatar({ recipientId }: AvatarProps) {
   const handleSendMessage = async (messageText: string) => {
     if (!user || !recipientId || !messageText.trim()) return;
 
-    const userId = user.id;
-    
     try {
       setIsLoading(true);
 
       // Get the last 20 messages for context
-      const messages = await fetchRecentMessages(userId);
+      const messages = await fetchRecentMessages(user.id);
       
       // Generate conversation history string
       const conversationHistory = messages
         .slice(0, 10)
-        .map(m => `${m.sender === userId ? 'You' : 'Recipient'}: ${m.content || ""}`)
+        .map(m => `${m.sender === user.id ? 'You' : 'Recipient'}: ${m.content || ""}`)
         .join('\n');
       
       // Get AI-generated response based on user's style
       const response = await generateAvatarResponse(
-        userId, 
+        user.id, 
         messageText,
         conversationHistory,
         messages
@@ -55,7 +53,7 @@ export default function Avatar({ recipientId }: AvatarProps) {
       });
 
       // Track that avatar was used
-      trackAvatarUsage({ userId });
+      trackAvatarUsage({ userId: user.id });
 
       // Wait a moment before sending the AI response
       setTimeout(async () => {
@@ -74,7 +72,10 @@ export default function Avatar({ recipientId }: AvatarProps) {
   };
   
   // Fetch recent messages for context
-  const fetchRecentMessages = async (userId: string): Promise<Message[]> => {
+  const fetchRecentMessages = async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _userId: string
+  ): Promise<Message[]> => {
     try {
       // This would typically be a Convex query to fetch recent messages
       // between the user and the recipient

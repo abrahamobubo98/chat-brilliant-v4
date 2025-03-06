@@ -2,10 +2,18 @@ import { Pinecone } from '@pinecone-database/pinecone';
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/community/vectorstores/pinecone";
 
-// Initialize Pinecone client
+// Initialize Pinecone client with the correct host
 const pineconeClient = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY || "",
 });
+
+// Helper function to get the correct index with host
+const getPineconeIndex = () => {
+  const indexName = process.env.PINECONE_INDEX || 'chat-brilliant-v4';
+  // The current Pinecone SDK version doesn't support passing a host parameter
+  // We're using environment variables on the Convex server side instead
+  return pineconeClient.Index(indexName);
+};
 
 /**
  * Index user messages in the vector store
@@ -17,7 +25,7 @@ export async function indexUserMessages(userId: string, messages: { id: string; 
   }
 
   try {
-    const pineconeIndex = pineconeClient.Index(process.env.PINECONE_INDEX);
+    const pineconeIndex = getPineconeIndex();
     const embeddings = new OpenAIEmbeddings({
       openAIApiKey: process.env.OPENAI_API_KEY,
     });
@@ -60,7 +68,7 @@ export async function retrieveRelevantMessages(userId: string, query: string, li
   }
 
   try {
-    const pineconeIndex = pineconeClient.Index(process.env.PINECONE_INDEX);
+    const pineconeIndex = getPineconeIndex();
     const embeddings = new OpenAIEmbeddings({
       openAIApiKey: process.env.OPENAI_API_KEY,
     });

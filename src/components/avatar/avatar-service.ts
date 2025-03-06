@@ -1,8 +1,16 @@
+// Define a proper interface for messages
+interface Message {
+  id: string;
+  sender: string;
+  content?: string;
+  timestamp?: number;
+}
+
 export async function generateAvatarResponse(
   userId: string,
   messageText: string,
   conversationHistory: string = "",
-  recentMessages: any[] = []
+  recentMessages: Message[] = []
 ): Promise<string> {
   try {
     // Call the AI avatar API endpoint

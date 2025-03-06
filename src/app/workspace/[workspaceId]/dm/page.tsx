@@ -19,12 +19,14 @@ const extractMessageText = (jsonBody: string) => {
     if (parsed && parsed.ops) {
       // Extract text from Quill delta format
       return parsed.ops
-        .map((op: any) => op.insert || "")
+        .map((op: { insert?: string }) => op.insert || "")
         .join("")
         .trim();
     }
     return jsonBody;
-  } catch (e) {
+  } 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  catch (_error) {
     // If parsing fails, return original
     return jsonBody;
   }
@@ -32,6 +34,8 @@ const extractMessageText = (jsonBody: string) => {
 
 const DirectMessagesPage = () => {
   const workspaceId = useWorkspaceId();
+  // We fetch currentMember for future implementation of user-specific features
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data: currentMember, isLoading: memberLoading } = useCurrentMember({ workspaceId });
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -64,12 +68,13 @@ const DirectMessagesPage = () => {
       // Otherwise show date
       return format(messageDate, "MMM d");
     } catch (error) {
+      console.error("Error formatting message date:", error);
       return "Unknown time";
     }
   };
 
   const isLoading = memberLoading || conversationsLoading;
-
+  
   return (
     <div className="h-full flex flex-col">
       <div className="h-[49px] flex items-center px-4 border-b">

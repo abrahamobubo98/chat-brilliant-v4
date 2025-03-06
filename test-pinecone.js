@@ -1,0 +1,2 @@
+const { Pinecone } = require('@pinecone-database/pinecone');
+async function testPineconeConnection() { try { const pinecone = new Pinecone({ apiKey: 'pcsk_7334cs_HVm39trGw84ZhKCPjdEond8FeaaEwirBDeiTxkacMLLMZaFbyEFuFccvjUEyXus' }); console.log('Listing all indexes...'); const indexes = await pinecone.listIndexes(); console.log('Available indexes:', indexes); } catch (error) { console.error('Pinecone connection error:', error); } } testPineconeConnection();

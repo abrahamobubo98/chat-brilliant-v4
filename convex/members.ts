@@ -296,3 +296,26 @@ export const updateStatus = mutation({
         });
     }
 });
+
+// Get a member by userId and workspaceId
+export const getMemberByUserId = query({
+    args: {
+        userId: v.string(),
+        workspaceId: v.id("workspaces")
+    },
+    handler: async (ctx, args) => {
+        const { userId, workspaceId } = args;
+
+        // The userId in members table might be stored as Id<"users"> or as a string
+        // We'll handle both cases by using string comparison
+        const members = await ctx.db
+            .query("members")
+            .withIndex("by_workspace_id", (q) => 
+                q.eq("workspaceId", workspaceId)
+            )
+            .collect();
+            
+        // Filter to find the member with matching userId string
+        return members.find(member => member.userId.toString() === userId);
+    }
+});

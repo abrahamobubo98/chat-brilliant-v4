@@ -8,10 +8,17 @@ export interface AvatarState {
   personalityProfile?: string;
 }
 
+// Define a proper Message interface
+export interface UserMessage {
+  id: string;
+  body: string;
+  _creationTime: number;
+}
+
 // In-memory store for demo purposes - would be in a database in production
 const avatarStates: Record<string, AvatarState> = {};
 
-export const activateAvatar = async (userId: string, messages: any[]): Promise<AvatarState> => {
+export const activateAvatar = async (userId: string, messages: UserMessage[]): Promise<AvatarState> => {
   // 1. Index user messages
   await indexUserMessages(
     userId,

@@ -7,10 +7,8 @@ import { Id } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { PopoverClose } from "@radix-ui/react-popover";
 import { EmojiPopover } from "@/components/emoji-popover";
 import { Smile } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
 interface StatusModalProps {
@@ -19,6 +17,15 @@ interface StatusModalProps {
   workspaceId: Id<"workspaces">;
   currentStatus?: string;
   currentEmoji?: string;
+}
+
+// Define a proper interface for emoji objects
+interface EmojiObject {
+  native: string;
+  colons?: string;
+  id?: string;
+  name?: string;
+  [key: string]: unknown;
 }
 
 export const StatusModal = ({ 
@@ -55,7 +62,7 @@ export const StatusModal = ({
     onClose();
   };
 
-  const onEmojiSelect = (emoji: any) => {
+  const onEmojiSelect = (emoji: EmojiObject) => {
     setStatusEmoji(emoji.native);
   };
   

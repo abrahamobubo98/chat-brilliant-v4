@@ -9,16 +9,23 @@ interface UseGetConversationsProps {
 export const useGetConversations = ({ 
   workspaceId 
 }: UseGetConversationsProps) => {
-  // Use any assertion to bypass TypeScript error while Convex is syncing
-  const listFunction = (api.conversations as any).list;
+  // Create a non-type-safe reference to the conversations.list function
+  const queryReference = api.conversations?.list;
   
-  // Only query if workspaceId is defined
-  const conversations = workspaceId 
-    ? useQuery(listFunction, { workspaceId }) 
-    : undefined;
+  // Always call useQuery with "skip" to maintain consistent hook call order
+  // If workspaceId is undefined, the query won't execute but the hook is still called
+  const conversations = useQuery(
+    queryReference, 
+    workspaceId ? { workspaceId } : "skip"
+  );
+  
+  // Handle the case when workspaceId is undefined
+  if (!workspaceId) {
+    return { conversations: undefined, isLoading: false };
+  }
   
   return {
     conversations,
-    isLoading: conversations === undefined && workspaceId !== undefined
+    isLoading: conversations === undefined
   };
 }; 

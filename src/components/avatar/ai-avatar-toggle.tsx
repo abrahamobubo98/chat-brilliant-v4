@@ -81,21 +81,38 @@ export const AIAvatarToggle = ({ userId }: AIAvatarToggleProps) => {
           AI Avatar
         </CardTitle>
         <CardDescription>
-          Let your AI avatar respond on your behalf when you're away
+          Let your AI avatar respond on your behalf when you&apos;re offline
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="avatar-mode"
-            checked={isActive}
-            onCheckedChange={handleToggleChange}
-            disabled={isPending}
-          />
-          <label htmlFor="avatar-mode" className="text-sm font-medium flex items-center gap-2">
-            {isActive ? 'Avatar Active' : 'Avatar Inactive'}
-            {isPending && <Loader size={14} className="animate-spin" />}
-          </label>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="avatar-mode"
+              checked={isActive}
+              onCheckedChange={handleToggleChange}
+              disabled={isPending}
+            />
+            <label htmlFor="avatar-mode" className="text-sm font-medium flex items-center gap-2">
+              {isActive ? 'Avatar Active' : 'Avatar Inactive'}
+              {isPending && <Loader size={14} className="animate-spin" />}
+            </label>
+          </div>
+          
+          <div className="text-sm text-muted-foreground">
+            {isActive ? (
+              <div className="space-y-2">
+                <p>Your AI avatar is now active and will:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Respond to messages when you&apos;re offline</li>
+                  <li>Use your past messages to learn your communication style</li>
+                  <li>Help keep conversations going when you&apos;re away</li>
+                </ul>
+              </div>
+            ) : (
+              <p>Enable your AI avatar to automatically respond to messages when you&apos;re offline.</p>
+            )}
+          </div>
         </div>
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">
@@ -107,7 +124,7 @@ export const AIAvatarToggle = ({ userId }: AIAvatarToggleProps) => {
         ) : (
           <p className="flex items-center gap-1">
             <User size={14} />
-            You're responding to messages yourself
+            You&apos;re responding to messages yourself
           </p>
         )}
       </CardFooter>
