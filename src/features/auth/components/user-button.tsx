@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader, Settings, Smile, LogOutIcon } from "lucide-react";
+import { Loader, Smile, LogOutIcon } from "lucide-react";
 import { 
     Avatar,
     AvatarFallback,
@@ -27,17 +27,21 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
 import { StatusModal } from "@/features/members/components/status-modal";
 import { useCurrentMember } from "@/features/members/api/use-current-member";
+import { useLogout } from "@/hooks/use-logout";
 
 export const UserButton = () => {
     const { signOut } = useAuthActions();
+    const { logout, isLoggingOut } = useLogout();
     const { data, isLoading } = useCurrentUser();
     const workspaceId = useWorkspaceId();
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     
-    // Get the current member to check online status and get current status
-    const { data: currentMember } = useCurrentMember({ workspaceId });
+    // Only fetch current member if we have a valid workspaceId
+    const { data: currentMember } = workspaceId 
+        ? useCurrentMember({ workspaceId }) 
+        : { data: undefined };
     
-    if (isLoading) {
+    if (isLoading || isLoggingOut) {
         return <Loader className="size-4 animate-spin text-muted-foreground"/>
     }
 
@@ -97,7 +101,7 @@ export const UserButton = () => {
                                         <Smile className="size-5 mr-2"/>
                                         Update Status
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => signOut()} className="h-10">
+                                    <DropdownMenuItem onClick={() => logout()} className="h-10">
                                         <LogOutIcon className="size-4 mr-2"/>
                                         Sign Out
                                     </DropdownMenuItem>

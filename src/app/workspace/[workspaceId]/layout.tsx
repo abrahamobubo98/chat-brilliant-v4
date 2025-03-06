@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/resizable";
 import { usePanel } from "@/hooks/use-panel";
 import { usePresence } from "@/hooks/use-presence";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 
 import { Sidebar } from "./sidebar";
 import { Toolbar } from "./toolbar";
@@ -25,12 +25,20 @@ interface WorkspaceIdLayoutProps {
 
 const WorkspaceIdLayout = ({ children }: WorkspaceIdLayoutProps) => {
     const params = useParams();
+    const pathname = usePathname();
     const workspaceId = params.workspaceId as Id<"workspaces">;
     
     // Track user presence
     usePresence(workspaceId);
 
+    // Always call hooks at the top level, regardless of route
     const {parentMessageId, profileMemberId, onClose} = usePanel();
+    
+    // If this is a DM route, just render the children (which will use the DM layout)
+    const isDmRoute = pathname.includes('/dm');
+    if (isDmRoute) {
+        return <>{children}</>;
+    }
 
     const showPanel = !!parentMessageId || !!profileMemberId;
     return (

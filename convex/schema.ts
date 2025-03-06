@@ -66,6 +66,15 @@ const schema = defineSchema({
     .index("by_workspace_id", ["workspaceId"])
     .index("by_message_id", ["messageId"])
     .index("by_member_id", ["memberId"]),
+
+    // Avatar states
+    avatarStates: defineTable({
+        userId: v.string(),
+        isActive: v.boolean(),
+        lastActive: v.number(),
+        personalityProfile: v.optional(v.string()),
+    })
+    .index("by_user_id", ["userId"]),
 });
 
 export default schema;

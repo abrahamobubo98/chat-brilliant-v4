@@ -240,6 +240,35 @@ export const updatePresence = mutation({
     }
 });
 
+// Update user online status in all workspaces
+export const updatePresenceAll = mutation({
+    args: {
+        isOnline: v.boolean()
+    },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx);
+        if (!userId) return null;
+
+        // Find all workspaces where the user is a member
+        const members = await ctx.db
+            .query("members")
+            .withIndex("by_user_id", (q) => q.eq("userId", userId))
+            .collect();
+
+        // Update presence in all workspaces
+        const updatePromises = members.map(member => 
+            ctx.db.patch(member._id, { 
+                isOnline: args.isOnline,
+                lastSeen: Date.now()
+            })
+        );
+        
+        await Promise.all(updatePromises);
+        
+        return { success: true, membersUpdated: members.length };
+    }
+});
+
 // Update user status
 export const updateStatus = mutation({
     args: {

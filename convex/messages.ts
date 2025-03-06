@@ -4,6 +4,7 @@ import { paginationOptsValidator } from "convex/server";
 import { mutation, query, QueryCtx } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Doc, Id } from "./_generated/dataModel";
+import { api } from "./_generated/api";
 
 const populateThread = async (ctx: QueryCtx, messageId: Id<"messages">) => {
     const messages = await ctx.db
@@ -97,8 +98,13 @@ export const remove = mutation({
             throw new Error("Unauthorized");
         };
 
-        await ctx.db.delete(args.id);
+        // Delete the message from the vector database
+        await ctx.scheduler.runAfter(0, api.vector.deleteMessageVector, {
+            messageId: args.id,
+        });
 
+        await ctx.db.delete(args.id);
+        
         return args.id;
     }
 })
@@ -115,7 +121,9 @@ export const update = mutation({
             throw new Error("Unauthorized");
         };
 
-        const message = await ctx.db.get(args.id);
+        const { id, body } = args;
+
+        const message = await ctx.db.get(id);
 
         if (!message) {
             throw new Error("Message not found");
@@ -127,12 +135,18 @@ export const update = mutation({
             throw new Error("Unauthorized");
         };
 
-        await ctx.db.patch(args.id, {
-            body: args.body,
+        await ctx.db.patch(id, {
+            body,
             updatedAt: Date.now(),
         });
 
-        return args.id;
+        // Update the message content in the vector database
+        await ctx.scheduler.runAfter(0, api.vector.updateMessageVector, {
+            messageId: id,
+            newText: body,
+        });
+
+        return id;
     }
 })
 
@@ -368,6 +382,7 @@ export const create = mutation({
             
         };
 
+        // Create the message
         const messageId = await ctx.db.insert("messages", {
             memberId: memberId._id,
             body: args.body,
@@ -378,6 +393,211 @@ export const create = mutation({
             parentMessageId: args.parentMessageId,
         });
 
+        // Check if we need to trigger AI avatar responses
+        // Only for direct messages in conversations (not channels)
+        if (_conversationId && !args.channelId) {
+            try {
+                // Get the conversation to find the other member
+                const conversation = await ctx.db.get(_conversationId);
+                
+                if (conversation) {
+                    // Find the other member in the conversation
+                    const otherMemberId = conversation.memberOneId === memberId._id 
+                        ? conversation.memberTwoId 
+                        : conversation.memberOneId;
+                    
+                    // Get the other member to check if they're online
+                    const otherMember = await ctx.db.get(otherMemberId);
+                    
+                    if (otherMember && otherMember.userId) {
+                        // Check if they're offline
+                        const isOffline = !otherMember.isOnline;
+                        
+                        // Log for debugging
+                        console.log(`Message received: ${args.body}`);
+                        console.log(`Recipient member ${otherMemberId} is offline: ${isOffline}`);
+                        
+                        if (isOffline) {
+                            // Check if they have an active avatar
+                            console.log(`[MESSAGES:SEND] Checking if recipient ${otherMember.userId} has active avatar`);
+                            const isAvatarActive = await ctx.runQuery(api.avatar.isAvatarActive, {
+                                userId: otherMember.userId
+                            });
+                            
+                            console.log(`[MESSAGES:SEND] Recipient avatar active: ${isAvatarActive}`);
+                            
+                            if (isAvatarActive) {
+                                console.log(`[MESSAGES:SEND] Recipient has active avatar. Triggering automated response.`);
+                                try {
+                                    // Trigger the avatar to respond
+                                    const response = await ctx.runMutation(api.avatar.handleAutomatedResponse, {
+                                        userId: otherMember.userId,
+                                        messageText: args.body,
+                                        conversationId: _conversationId,
+                                        workspaceId: args.workspaceId,
+                                        receiverMemberId: otherMemberId
+                                    });
+                                    
+                                    console.log(`[MESSAGES:SEND] Avatar response triggered with result:`, response);
+                                } catch (avatarError) {
+                                    console.error(`[MESSAGES:SEND] Error triggering avatar response: ${avatarError}`);
+                                    // Don't fail the message send if avatar response fails
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                // Log error but don't prevent message creation
+                console.error("Error checking for avatar response:", error);
+            }
+        }
+
         return messageId;
     }
 })
+
+export const send = mutation({
+    args: {
+        body: v.string(),
+        channelId: v.optional(v.id("channels")),
+        conversationId: v.optional(v.id("conversations")),
+        workspaceId: v.id("workspaces"),
+        parentMessageId: v.optional(v.id("messages")),
+    },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx);
+
+        if (!userId) {
+            throw new Error("Unauthorized");
+        };
+
+        const { body, channelId, conversationId, workspaceId, parentMessageId } = args;
+
+        if (!channelId && !conversationId) {
+            throw new Error("Either channelId or conversationId is required");
+        };
+
+        const member = await getMember(ctx, workspaceId, userId);
+
+        if (!member) {
+            throw new Error("Member not found");
+        };
+
+        // Create the message
+        const messageId = await ctx.db.insert("messages", {
+            body,
+            memberId: member._id,
+            workspaceId,
+            channelId,
+            conversationId,
+            parentMessageId,
+        });
+
+        // Store the message content in the vector database for semantic search
+        await ctx.scheduler.runAfter(0, api.vector.storeMessageVector, {
+            messageId,
+            text: body,
+            workspaceId,
+            userId,
+        });
+
+        return messageId;
+    },
+});
+
+// Add a semantic search function for messages
+export const semanticSearch = query({
+    args: {
+        query: v.string(),
+        workspaceId: v.id("workspaces"),
+        limit: v.optional(v.number()),
+    },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx);
+
+        if (!userId) {
+            throw new Error("Unauthorized");
+        };
+
+        const { query, workspaceId, limit = 5 } = args;
+
+        const member = await getMember(ctx, workspaceId, userId);
+
+        if (!member) {
+            throw new Error("Unauthorized");
+        };
+
+        // Call the vector search action to find similar messages
+        // This is a mock implementation - the real implementation will call the vector database
+        // This will be replaced by an action in a production application
+        
+        // Example of how to structure the response for now
+        return {
+            query,
+            results: [],
+            count: 0
+        };
+    },
+});
+
+// Function for sending AI-generated messages - used by the avatar module
+export const sendAIMessage = mutation({
+    args: {
+        body: v.string(),
+        memberId: v.id("members"),
+        workspaceId: v.id("workspaces"),
+        conversationId: v.id("conversations"),
+    },
+    handler: async (ctx, args) => {
+        const { body, memberId, workspaceId, conversationId } = args;
+        
+        console.log(`[MESSAGES:SEND_AI] Received request to send AI message.
+          body: ${body.substring(0, 50)}...
+          memberId: ${memberId}
+          workspaceId: ${workspaceId}
+          conversationId: ${conversationId}
+        `);
+        
+        try {
+            // Create the message
+            console.log(`[MESSAGES:SEND_AI] Inserting message into database`);
+            const messageId = await ctx.db.insert("messages", {
+                body,
+                memberId,
+                workspaceId,
+                conversationId,
+            });
+            console.log(`[MESSAGES:SEND_AI] Successfully created message. ID: ${messageId}`);
+            
+            // Get member info to pass the proper user ID
+            console.log(`[MESSAGES:SEND_AI] Getting member info for ${memberId}`);
+            const member = await ctx.db.get(memberId);
+            if (!member) {
+                console.error(`[MESSAGES:SEND_AI] Member not found: ${memberId}`);
+                throw new Error("Member not found");
+            }
+            console.log(`[MESSAGES:SEND_AI] Found member. User ID: ${member.userId}`);
+            
+            try {
+                // Store the message in vector DB for future context
+                console.log(`[MESSAGES:SEND_AI] Storing message in vector database`);
+                await ctx.scheduler.runAfter(0, api.vector.storeMessageVector, {
+                    messageId,
+                    text: body,
+                    workspaceId,
+                    userId: member.userId
+                });
+                console.log(`[MESSAGES:SEND_AI] Successfully scheduled vector storage`);
+            } catch (vectorError) {
+                // Log but don't fail if vector storage fails
+                console.error(`[MESSAGES:SEND_AI] Vector storage error (non-fatal): ${vectorError}`);
+            }
+            
+            return messageId;
+        } catch (error) {
+            console.error(`[MESSAGES:SEND_AI] Error sending AI message: ${error}`);
+            throw error;
+        }
+    },
+});

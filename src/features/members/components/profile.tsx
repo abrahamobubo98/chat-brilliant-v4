@@ -24,6 +24,7 @@ import { useRemoveMember } from "../api/use-remove-member";
 import { useCurrentMember } from "../api/use-current-member";
 import { StatusModal } from "./status-modal";
 import { toast } from "sonner";
+import { AIAvatarToggle } from "@/components/avatar/ai-avatar-toggle";
 
 
 interface ProfileProps {
@@ -194,6 +195,11 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
                     </div>
                 </div>
             </div>
+            {isCurrentUser && (
+                <div className="px-4 mt-2 mb-4">
+                    <AIAvatarToggle userId={member.user._id} />
+                </div>
+            )}
             <div className="flex flex-col p-4">
                 {currentMember?.role === "admin" && 
                 currentMember?._id !== memberId? (
@@ -228,7 +234,7 @@ export const Profile = ({memberId, onClose}: ProfileProps) => {
                             {isRemovingMember && <Loader className="ml-2 size-4 animate-spin" />}
                         </Button>
                     </div>
-                ): currentMember?._id === memberId && 
+                ):
                 currentMember?.role !== "admin" ? (
                     <div className="mt-4">
                         <Button 
